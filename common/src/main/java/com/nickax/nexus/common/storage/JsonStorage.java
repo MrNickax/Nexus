@@ -216,11 +216,8 @@ public class JsonStorage<T> extends Storage<T> {
     @Override
     public CompletableFuture<Void> putAll(Map<String, T> entries) {
         if (entries.isEmpty()) {
-            logger.info("JsonStorage putAll called with no entries.");
             return CompletableFuture.completedFuture(null);
         }
-
-        logger.info("JsonStorage putAll started with " + entries.size() + " entries.");
 
         List<CompletableFuture<T>> futures = new ArrayList<>(entries.size());
         for (Map.Entry<String, T> entry : entries.entrySet()) {
@@ -231,14 +228,7 @@ public class JsonStorage<T> extends Storage<T> {
             }));
         }
 
-        return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new))
-                .whenComplete((result, throwable) -> {
-                    if (throwable != null) {
-                        logger.log(Level.SEVERE, "JsonStorage putAll failed", unwrap(throwable));
-                    } else {
-                        logger.info("JsonStorage putAll completed.");
-                    }
-                });
+        return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new));
     }
 
     /**
@@ -250,11 +240,8 @@ public class JsonStorage<T> extends Storage<T> {
     @Override
     public CompletableFuture<Void> removeAll(List<String> keys) {
         if (keys.isEmpty()) {
-            logger.info("JsonStorage removeAll called with no keys.");
             return CompletableFuture.completedFuture(null);
         }
-
-        logger.info("JsonStorage removeAll started with " + keys.size() + " keys.");
 
         List<CompletableFuture<T>> futures = new ArrayList<>(keys.size());
         for (String key : keys) {
@@ -275,14 +262,7 @@ public class JsonStorage<T> extends Storage<T> {
             }));
         }
 
-        return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new))
-                .whenComplete((result, throwable) -> {
-                    if (throwable != null) {
-                        logger.log(Level.SEVERE, "JsonStorage removeAll failed", unwrap(throwable));
-                    } else {
-                        logger.info("JsonStorage removeAll completed.");
-                    }
-                });
+        return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new));
     }
 
     /**
@@ -297,18 +277,15 @@ public class JsonStorage<T> extends Storage<T> {
     public void shutdown() {
         try {
             shuttingDown = true;
-            logger.info("JsonStorage shutdown started. Waiting for active key locks...");
 
             CompletableFuture<?>[] activeLocks = keyLocks.values().toArray(CompletableFuture[]::new);
             CompletableFuture.allOf(activeLocks).join();
 
             keyLocks.clear();
-            logger.info("JsonStorage shutdown completed.");
         } catch (Exception e) {
             logger.log(Level.SEVERE, "JsonStorage shutdown failed", e);
         }
     }
-
     /**
      * Executes a task asynchronously that returns a result.
      *
@@ -318,15 +295,12 @@ public class JsonStorage<T> extends Storage<T> {
      * @return a CompletableFuture containing the result of the task
      */
     private <R> CompletableFuture<R> supplyAsync(String operation, Supplier<R> task) {
-        logger.info(formatMessage(operation) + " started.");
-
-        return CompletableFuture.supplyAsync(task, executor).whenComplete((result, throwable) -> {
-            if (throwable != null) {
-                logger.log(Level.SEVERE, formatMessage(operation), unwrap(throwable));
-            } else {
-                logger.info(formatMessage(operation) + " completed.");
-            }
-        });
+        return CompletableFuture.supplyAsync(task, executor)
+                .whenComplete((result, throwable) -> {
+                    if (throwable != null) {
+                        logger.log(Level.SEVERE, formatMessage(operation), unwrap(throwable));
+                    }
+                });
     }
 
     /**
@@ -343,8 +317,6 @@ public class JsonStorage<T> extends Storage<T> {
             logger.warning("JsonStorage " + operation + " rejected because shutdown is in progress for key: " + key);
             return CompletableFuture.failedFuture(new IllegalStateException("JsonStorage is shutting down"));
         }
-
-        logger.info("JsonStorage " + operation + " started for key: " + key);
 
         return CompletableFuture.supplyAsync(() -> {
             if (shuttingDown) {
@@ -372,8 +344,6 @@ public class JsonStorage<T> extends Storage<T> {
 
                 if (throwable != null) {
                     logger.log(Level.SEVERE, "JsonStorage " + operation + " failed for key: " + key, unwrap(throwable));
-                } else {
-                    logger.info("JsonStorage " + operation + " completed for key: " + key);
                 }
             });
         }, executor).thenCompose(Function.identity());
@@ -421,6 +391,12 @@ public class JsonStorage<T> extends Storage<T> {
      */
     private void saveValue(File file, T value) {
         try {
+            File parent = file.getParentFile();
+
+            if (parent != null && !parent.exists() && !parent.mkdirs() && !parent.exists()) {
+                throw new IOException("Failed to create directory: " + parent.getAbsolutePath());
+            }
+
             String json = JsonUtil.toJson(value);
             Files.writeString(file.toPath(), json);
         } catch (IOException e) {
