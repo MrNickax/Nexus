@@ -19,6 +19,7 @@
     </properties>
 
     <build>
+        <finalName>${project.name}-${project.version}</finalName>
         <defaultGoal>clean package</defaultGoal>
         <plugins>
             <plugin>
@@ -33,7 +34,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.5.3</version>
+                <version>3.6.1</version>
+                <configuration>
+                    <shadedArtifactAttached>false</shadedArtifactAttached>
+                    <createDependencyReducedPom>false</createDependencyReducedPom>
+                </configuration>
                 <executions>
                     <execution>
                         <phase>package</phase>
