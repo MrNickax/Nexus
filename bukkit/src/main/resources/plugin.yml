@@ -1,0 +1,7 @@
+name: Nexus-Bukkit
+version: '${project.version}'
+
+main: com.nickax.nexus.bukkit.NexusBukkit
+api-version: '1.21'
+authors: ["Nickax"]
+folia-supported: true
