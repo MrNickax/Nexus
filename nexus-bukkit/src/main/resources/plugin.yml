@@ -1,0 +1,8 @@
+name: Nexus
+version: ${revision}
+main: com.nickax.nexus.bukkit.NexusBukkitPlugin
+load: STARTUP
+api-version: "1.21"
+folia-supported: true
+description: Public core for building Minecraft plugins.
+author: Nickax
