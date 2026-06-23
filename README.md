@@ -49,25 +49,39 @@ The build produces two artifacts from `nexus-bukkit`:
 
 ## Getting started (consumer plugin)
 
-**1. Add the dependency.** Install Nexus to your local Maven repository (`mvn install`) or
-deploy it to your own repository, then:
+**1. Add the dependency** via [JitPack](https://jitpack.io). Add the JitPack repository:
+
+```xml
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
+```
+
+then the modules (note the JitPack group id `com.github.MrNickax.Nexus`):
 
 ```xml
 <dependencies>
     <dependency>
-        <groupId>com.nickax.nexus</groupId>
+        <groupId>com.github.MrNickax.Nexus</groupId>
         <artifactId>nexus-api</artifactId>
         <version>1.0.0</version>
         <scope>provided</scope>
     </dependency>
     <dependency>
-        <groupId>com.nickax.nexus</groupId>
+        <groupId>com.github.MrNickax.Nexus</groupId>
         <artifactId>nexus-bukkit</artifactId>
         <version>1.0.0</version>
         <scope>provided</scope>
     </dependency>
 </dependencies>
 ```
+
+> The `version` is any GitHub release tag or commit hash (e.g. `1.0.0`), or
+> `master-SNAPSHOT` to track the latest commit on the default branch. JitPack builds the
+> tag on first request, so the matching release/tag must exist on GitHub.
 
 **2. Depend on the plugin** in your `plugin.yml`:
 
